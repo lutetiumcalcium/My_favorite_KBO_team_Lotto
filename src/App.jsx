@@ -156,7 +156,7 @@ export default function App() {
             <img src={logoFor(logoName)} alt={`${logoName} 로고`} />
           </div>
           <p className="eyebrow">KOREA BASEBALL ORGANIZATION</p>
-          <h1>KBO 주간 등번호 로또</h1>
+          <h1>KBO 리그 최애팀 주간 등번호 로또</h1>
           <p className="subtitle">좋아하는 팀의 등번호로 이번 주 여섯 숫자를 만나보세요.</p>
         </div>
       </header>
