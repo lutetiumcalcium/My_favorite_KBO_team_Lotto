@@ -3,6 +3,7 @@ import { requireSupabase } from './supabase';
 
 const VALID_NUMBERS = [...Array(45).keys()].map((index) => index + 1);
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
+const UNREGISTERED_NAME = '1군 미등록';
 
 function kstToday() {
   const parts = new Intl.DateTimeFormat('en', {
@@ -53,6 +54,30 @@ function permanentMap(team) {
   return new Map((permanentRecords[team] || []).map(({ number, name }) => [number, name]));
 }
 
+function rosterName(number, firstPlayers, permanent, futuresPlayers) {
+  return firstPlayers.get(number)
+    || permanent.get(number)
+    || futuresPlayers.get(number)
+    || UNREGISTERED_NAME;
+}
+
+function addRosterNames(numbers, snapshot, team, includePermanent) {
+  if (!Array.isArray(numbers)) return numbers;
+  const firstPlayers = playerMap(snapshot.first_players);
+  const futuresPlayers = playerMap(snapshot.futures_players);
+  const permanent = includePermanent ? permanentMap(team) : new Map();
+
+  return numbers.map((item) => {
+    const savedName = typeof item.name === 'string' ? item.name.trim() : '';
+    return {
+      ...item,
+      name: savedName && savedName !== UNREGISTERED_NAME
+        ? savedName
+        : rosterName(Number(item.number), firstPlayers, permanent, futuresPlayers),
+    };
+  });
+}
+
 function randomIndex(length) {
   const values = new Uint32Array(1);
   crypto.getRandomValues(values);
@@ -92,7 +117,7 @@ function createNumbers(snapshot, team, mode, includePermanent) {
   return selected.sort((a, b) => a - b).map((number) => ({
     number,
     source: first.has(number) ? 'first' : 'other',
-    name: firstPlayers.get(number) || permanent.get(number) || futuresPlayers.get(number) || '1군 미등록',
+    name: rosterName(number, firstPlayers, permanent, futuresPlayers),
   }));
 }
 
@@ -172,9 +197,10 @@ export async function loadWeek(team, mode, includePermanent) {
     weekStart: dates[0],
     weekEnd: dates[dates.length - 1],
     days: dates.map((date) => {
-      const numbers = date > today ? null : userByDate.get(date) || dailyByDate.get(date) || null;
+      const storedNumbers = date > today ? null : userByDate.get(date) || dailyByDate.get(date) || null;
       const saved = savedByDate.has(date)
-        && JSON.stringify(savedByDate.get(date)) === JSON.stringify(numbers);
+        && JSON.stringify(savedByDate.get(date)) === JSON.stringify(storedNumbers);
+      const numbers = addRosterNames(storedNumbers, snapshot, team, includePermanent);
       return dayPayload(date, today, numbers, saved);
     }),
   };
