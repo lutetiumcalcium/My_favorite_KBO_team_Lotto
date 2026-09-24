@@ -44,7 +44,9 @@ function DayCard({ day, onSave, saving }) {
                   <span className={`number-ball ${source === 'first' ? 'first' : 'other'}`}>
                     {String(number).padStart(2, '0')}
                   </span>
-                  <span className="player-name" title={name || '1군 미등록'}>{name || '1군 미등록'}</span>
+                  {name && name !== '1군 미등록' && (
+                    <span className="player-name" title={name}>{name}</span>
+                  )}
                 </span>
               ))
             : [...Array(6).keys()].map((index) => <span className="number-ball pending" key={index}>–</span>)}
