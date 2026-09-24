@@ -34,7 +34,7 @@ function weekDates(today) {
   return [0, 2, 3, 4, 5, 6].map((offset) => dateString(addDays(sunday, offset)));
 }
 
-function dayPayload(value, today, numbers = null, saved = false) {
+function dayPayload(value, today, numbers = null) {
   const date = parseDate(value);
   const state = value > today ? 'future' : value < today ? 'locked' : 'today';
   return {
@@ -42,7 +42,6 @@ function dayPayload(value, today, numbers = null, saved = false) {
     label: `${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCDate()).padStart(2, '0')} (${DAY_NAMES[date.getUTCDay()]})`,
     state,
     numbers,
-    saved,
   };
 }
 
@@ -173,16 +172,14 @@ export async function loadWeek(team, mode, includePermanent) {
     .eq('mode', mode)
     .eq('include_permanent', includePermanent)
     .in('draw_date', dates);
-  const [userResult, dailyResult, savedResult] = await Promise.all([
+  const [userResult, dailyResult] = await Promise.all([
     commonFilters(client.from('user_draws').select('draw_date,numbers')).eq('user_id', user.id),
     commonFilters(client.from('daily_results').select('draw_date,numbers')),
-    commonFilters(client.from('saved_draws').select('draw_date,numbers')).eq('user_id', user.id),
   ]);
-  for (const result of [userResult, dailyResult, savedResult]) if (result.error) throw result.error;
+  for (const result of [userResult, dailyResult]) if (result.error) throw result.error;
 
   const userByDate = new Map(userResult.data.map((row) => [row.draw_date, row.numbers]));
   const dailyByDate = new Map(dailyResult.data.map((row) => [row.draw_date, row.numbers]));
-  const savedByDate = new Map(savedResult.data.map((row) => [row.draw_date, row.numbers]));
   if (dates.includes(today) && !userByDate.has(today)) {
     const numbers = createNumbers(snapshot, team, mode, includePermanent);
     await putUserDraw(user, snapshot, team, mode, includePermanent, today, numbers);
@@ -198,10 +195,8 @@ export async function loadWeek(team, mode, includePermanent) {
     weekEnd: dates[dates.length - 1],
     days: dates.map((date) => {
       const storedNumbers = date > today ? null : userByDate.get(date) || dailyByDate.get(date) || null;
-      const saved = savedByDate.has(date)
-        && JSON.stringify(savedByDate.get(date)) === JSON.stringify(storedNumbers);
       const numbers = addRosterNames(storedNumbers, snapshot, team, includePermanent);
-      return dayPayload(date, today, numbers, saved);
+      return dayPayload(date, today, numbers);
     }),
   };
 }
@@ -212,22 +207,5 @@ export async function redrawToday(team, mode, includePermanent) {
   const snapshot = await latestSnapshot(team, today);
   const numbers = createNumbers(snapshot, team, mode, includePermanent);
   await putUserDraw(user, snapshot, team, mode, includePermanent, today, numbers);
-  return dayPayload(today, today, numbers, false);
-}
-
-export async function saveDraw(day, team, mode, includePermanent, rosterDate) {
-  if (!day.numbers) throw new Error('저장할 번호가 없습니다.');
-  const client = requireSupabase();
-  const user = await currentUser();
-  const { error } = await client.from('saved_draws').upsert({
-    user_id: user.id,
-    draw_date: day.date,
-    team,
-    mode,
-    include_permanent: includePermanent,
-    numbers: day.numbers,
-    roster_date: rosterDate,
-    saved_at: new Date().toISOString(),
-  }, { onConflict: 'user_id,draw_date,team,mode,include_permanent' });
-  if (error) throw error;
+  return dayPayload(today, today, numbers);
 }

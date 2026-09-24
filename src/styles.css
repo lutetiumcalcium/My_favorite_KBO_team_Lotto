@@ -56,10 +56,6 @@ h2 { margin: 0; font-size: 23px; letter-spacing: -.045em; }
 .number-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .number-item { display: grid; min-width: 46px; justify-items: center; gap: 5px; }
 .player-name { display: block; overflow: hidden; width: 58px; color: #647891; font-size: 10px; font-weight: 700; line-height: 1.25; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
-.day-save-button { flex: none; min-width: 82px; height: 38px; margin-left: auto; border: 1px solid var(--team-color); border-radius: 8px; background: #fff; color: var(--team-color); font-size: 13px; font-weight: 800; }
-.day-save-button:hover:not(:disabled) { background: var(--team-color); color: #fff; }
-.day-save-button:disabled { border-color: #ced9e7; color: #95a2b4; cursor: default; }
-.day-save-button.saved { border-color: #198754; background: #eef9f2; color: #198754; }
 .number-ball { display: grid; place-items: center; width: 46px; height: 43px; border-radius: 999px; font-size: 16px; font-weight: 800; }
 .number-ball.first { background: var(--team-color); color: #fff; }
 .number-ball.other { border: 1px solid #cbd8e6; background: #fff; color: #22354f; }
@@ -68,7 +64,6 @@ h2 { margin: 0; font-size: 23px; letter-spacing: -.045em; }
 .day-status.locked { color: #95611f; }
 .day-status.today { color: #21865d; }
 .day-status.future { color: #7b8ba0; }
-.save-feature-note { margin: 12px 0 0; color: #73869f; font-size: 12px; text-align: right; }
 .message-panel { margin-top: 20px; padding: 40px 25px; border-radius: 12px; background: #f7f9fc; color: #667890; text-align: center; }
 .message-panel.error { color: #a5323a; }
 .message-panel button { margin-left: 12px; padding: 6px 12px; border: 1px solid currentColor; border-radius: 7px; background: #fff; color: inherit; }
@@ -90,8 +85,6 @@ h2 { margin: 0; font-size: 23px; letter-spacing: -.045em; }
   .day-date-block { width: auto; }
   .number-list { gap: 5px; }
   .number-ball { width: 39px; height: 39px; font-size: 14px; }
-  .day-save-button { align-self: flex-end; }
-  .save-feature-note { text-align: left; }
   .actions { flex-direction: column; }
   .actions button { width: 100%; }
 }

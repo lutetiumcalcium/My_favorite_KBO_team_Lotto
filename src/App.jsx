@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import teamColors from '../kbo_team_colors.json';
-import { loadWeek, redrawToday, saveDraw } from './cloudApi';
+import { loadWeek, redrawToday } from './cloudApi';
 
 const logoUrls = import.meta.glob('../logos/*.png', { eager: true, query: '?url', import: 'default' });
 const logoFor = (name) => logoUrls[`../logos/${name}.png`];
@@ -24,7 +24,7 @@ function modeDescription(mode, includePermanent) {
   return `${description} 영구결번은 1군 후보에 ${includePermanent ? '포함합니다' : '포함하지 않습니다'}.`;
 }
 
-function DayCard({ day, onSave, saving }) {
+function DayCard({ day }) {
   const label = day.state === 'future'
     ? '예정 · 당일 생성'
     : day.state === 'locked'
@@ -51,15 +51,6 @@ function DayCard({ day, onSave, saving }) {
               ))
             : [...Array(6).keys()].map((index) => <span className="number-ball pending" key={index}>–</span>)}
         </div>
-        <button
-          className={`day-save-button ${day.saved ? 'saved' : ''}`}
-          type="button"
-          disabled={!day.numbers || day.saved || saving}
-          aria-label={`${day.label} 번호 ${day.saved ? '저장됨' : '저장'}`}
-          onClick={() => onSave(day)}
-        >
-          {saving ? '저장 중…' : day.saved ? '저장됨' : '저장'}
-        </button>
       </div>
     </article>
   );
@@ -72,7 +63,6 @@ export default function App() {
   const [week, setWeek] = useState(null);
   const [loading, setLoading] = useState(false);
   const [redrawing, setRedrawing] = useState(false);
-  const [savingDate, setSavingDate] = useState('');
   const [error, setError] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
   const [modeOpen, setModeOpen] = useState(false);
@@ -155,23 +145,6 @@ export default function App() {
       setRedrawing(false);
     }
   }, [team, mode, includePermanent, redrawing, week]);
-
-  const save = useCallback(async (day) => {
-    if (!week || !day.numbers || day.saved || savingDate) return;
-    setSavingDate(day.date);
-    setError('');
-    try {
-      await saveDraw(day, team, mode, includePermanent, week.referenceDate);
-      setWeek((current) => ({
-        ...current,
-        days: current.days.map((item) => item.date === day.date ? { ...item, saved: true } : item),
-      }));
-    } catch (cause) {
-      setError(cause.message);
-    } finally {
-      setSavingDate('');
-    }
-  }, [week, team, mode, includePermanent, savingDate]);
 
   const today = week?.days.find((day) => day.state === 'today');
 
@@ -280,14 +253,13 @@ export default function App() {
                 <span><i className="legend-ball other" />{mode === 'all' ? '퓨처스 선수 번호' : '1군 미등록 번호'}</span>
               </div>
             </div>
-            {loading && <div className="message-panel">KBO 등록 명단과 저장된 번호를 불러오는 중입니다…</div>}
+            {loading && <div className="message-panel">KBO 등록 명단과 주간 번호를 불러오는 중입니다…</div>}
             {!loading && error && <div className="message-panel error" role="alert">{error}<button onClick={() => setRefreshKey((value) => value + 1)}>다시 시도</button></div>}
             {!loading && week && (
               <>
                 <div className="day-list">{week.days.map((day) => (
-                  <DayCard day={day} key={day.date} onSave={save} saving={savingDate === day.date} />
+                  <DayCard day={day} key={day.date} />
                 ))}</div>
-                <p className="save-feature-note">저장한 번호와 선수 이름은 내 익명 계정에 보관됩니다.</p>
                 <div className="actions">
                   <button className="primary-button" onClick={redraw} disabled={!today || redrawing}>
                     {redrawing ? '뽑는 중…' : '오늘 번호 다시 뽑기'}
