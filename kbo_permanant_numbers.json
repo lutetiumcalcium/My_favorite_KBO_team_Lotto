@@ -1,0 +1,37 @@
+{
+  "두산": [
+    { "number": 54, "name": "김영신" },
+    { "number": 21, "name": "박철순" }
+  ],
+  "LG": [
+    { "number": 9, "name": "이병규" },
+    { "number": 33, "name": "박용택" },
+    { "number": 41, "name": "김용수" }
+  ],
+  "KIA": [
+    { "number": 7, "name": "이종범" },
+    { "number": 18, "name": "선동열" }
+  ],
+  "삼성": [
+    { "number": 10, "name": "양준혁" },
+    { "number": 21, "name": "오승환" },
+    { "number": 22, "name": "이만수" },
+    { "number": 36, "name": "이승엽" }
+  ],
+  "롯데": [
+    { "number": 10, "name": "이대호" },
+    { "number": 11, "name": "최동원" }
+  ],
+  "한화": [
+    { "number": 21, "name": "송진우" },
+    { "number": 23, "name": "정민철" },
+    { "number": 35, "name": "장종훈" },
+    { "number": 52, "name": "김태균" }
+  ],
+  "SSG": [
+    { "number": 26, "name": "박경완" }
+  ],
+  "키움": [],
+  "NC": [],
+  "KT": []
+}

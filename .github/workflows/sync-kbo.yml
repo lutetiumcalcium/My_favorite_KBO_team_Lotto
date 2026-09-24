@@ -1,0 +1,31 @@
+name: Sync KBO data
+
+on:
+  schedule:
+    # UTC 기준. 한국 시간 00:17, 03:17, 06:17 ...에 실행된다.
+    - cron: '17 */3 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: sync-kbo-data
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+          cache: pip
+      - run: pip install -r automation/requirements.txt
+      - run: python automation/sync_supabase.py
+        env:
+          SUPABASE_URL: https://ziejjlfyrrrmwrxjxzaz.supabase.co
+          SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
+

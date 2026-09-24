@@ -1,0 +1,97 @@
+:root { font-family: 'Noto Sans KR', 'Malgun Gothic', sans-serif; color: #15243a; background: #eef2f7; font-synthesis: none; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+button, select { font: inherit; }
+button { cursor: pointer; }
+.app-shell { min-height: 100vh; }
+.hero { background: var(--team-color); color: #fff; transition: background-color .25s ease; }
+.hero-inner { max-width: 1080px; margin: auto; padding: 43px 28px 47px; text-align: center; }
+.brand-mark { display: grid; place-items: center; width: 78px; height: 78px; margin: 0 auto 14px; border: 1px solid rgba(255,255,255,.45); border-radius: 50%; background: rgba(255,255,255,.1); }
+.brand-mark img { display: block; width: 64px; height: 58px; object-fit: contain; }
+.brand-mark.kbo-logo img { width: 42px; }
+.brand-mark.team-logo { border-color: #fff; background: #fff; }
+.eyebrow { margin: 0 0 6px; color: rgba(255,255,255,.65); font-size: 10px; font-weight: 800; letter-spacing: .23em; }
+h1 { margin: 0; font-size: clamp(30px, 4vw, 44px); font-weight: 900; letter-spacing: -.055em; line-height: 1.35; }
+.subtitle { margin: 8px 0 0; color: rgba(255,255,255,.85); font-size: 14px; }
+.page { max-width: 1080px; margin: 0 auto; padding: 28px 24px 54px; }
+.selection-panel, .results-panel, .empty-panel { border: 1px solid #dde5ef; border-radius: 21px; background: #fff; box-shadow: 0 12px 34px rgba(24,45,74,.06); }
+.selection-panel { padding: 24px 30px 25px; }
+.selection-heading, .results-top { display: flex; justify-content: space-between; align-items: center; gap: 16px; }
+.section-kicker { margin: 0 0 2px; color: #8390a5; font-size: 10px; font-weight: 800; letter-spacing: .14em; }
+h2 { margin: 0; font-size: 23px; letter-spacing: -.045em; }
+.selected-team-mark { display: flex; align-items: center; gap: 7px; padding: 7px 12px; border-radius: 999px; background: #f2f5f9; font-size: 13px; font-weight: 800; }
+.selected-team-mark i { width: 12px; height: 12px; border-radius: 50%; }
+.select-row { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-top: 20px; }
+.select-field { display: flex; flex-direction: column; gap: 8px; color: #485c75; font-size: 13px; font-weight: 800; }
+.select-field select, .mode-button { width: 100%; height: 52px; padding: 0 15px; border: 1px solid #ccd8e6; border-radius: 10px; outline: none; background: #fff; color: #1c2f48; font-size: 15px; font-weight: 700; }
+.select-field select:focus, .mode-button:focus { border-color: var(--team-color); box-shadow: 0 0 0 3px rgba(30,75,135,.12); }
+.mode-field { position: relative; }
+.mode-button { display: flex; align-items: center; justify-content: space-between; text-align: left; }
+.mode-button span { color: #344963; font-size: 23px; font-weight: 400; line-height: 1; }
+.mode-menu { position: absolute; z-index: 30; top: 83px; left: 0; width: 100%; padding: 6px; border: 1px solid #d5dfeb; border-radius: 11px; background: #fff; box-shadow: 0 15px 32px rgba(23,43,75,.18); }
+.mode-option { display: flex; justify-content: space-between; align-items: center; width: 100%; height: 39px; padding: 0 12px; border: 0; border-radius: 7px; background: #fff; color: #243955; text-align: left; font-size: 14px; font-weight: 700; }
+.mode-option:hover, .mode-option.active { background: #edf3fa; }
+.mode-option.active span { color: var(--team-color); font-weight: 900; }
+.permanent-toggle { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; height: 52px; padding: 4px; border: 1px solid #ccd8e6; border-radius: 10px; background: #f4f7fb; }
+.permanent-toggle button { border: 0; border-radius: 7px; background: transparent; color: #667a94; font-size: 14px; font-weight: 800; }
+.permanent-toggle button.active { background: var(--team-color); color: #fff; box-shadow: 0 2px 7px rgba(20,35,58,.14); }
+.rule-note { display: flex; align-items: center; gap: 8px; margin-top: 16px; color: #55708d; font-size: 13px; }
+.rule-icon { display: grid; place-items: center; flex: none; width: 18px; height: 18px; border-radius: 50%; background: #e7eef8; color: #5376a1; font-size: 11px; font-weight: 800; }
+.empty-panel { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 410px; margin-top: 18px; text-align: center; }
+.empty-symbol { display: grid; place-items: center; width: 76px; height: 76px; margin-bottom: 17px; border-radius: 50%; background: #eaf1fa; font-size: 37px; }
+.empty-panel h2 { font-size: 24px; }
+.empty-panel p { margin: 8px 0 0; color: #70829b; font-size: 14px; }
+.results-panel { margin-top: 18px; padding: 24px 30px 26px; }
+.reference-date { margin: 4px 0 0; color: #72839b; font-size: 12px; }
+.legend { display: flex; gap: 15px; align-items: center; flex-wrap: wrap; color: #50647d; font-size: 12px; font-weight: 700; }
+.legend span { display: flex; align-items: center; gap: 6px; }
+.legend-ball { display: inline-block; width: 16px; height: 16px; border-radius: 50%; }
+.legend-ball.first { background: var(--team-color); }
+.legend-ball.other { border: 1px solid #cbd8e6; background: #fff; }
+.day-list { display: grid; gap: 8px; margin-top: 20px; }
+.day-card { min-height: 96px; padding: 12px 20px 10px; border: 1px solid #e7edf5; border-radius: 11px; background: #fafbfd; }
+.day-main { display: flex; align-items: center; gap: 16px; }
+.day-date-block { display: flex; flex: none; flex-direction: column; gap: 6px; width: 125px; }
+.day-date { font-size: 16px; }
+.number-list { display: flex; flex-wrap: wrap; gap: 8px; }
+.number-item { display: grid; min-width: 46px; justify-items: center; gap: 5px; }
+.player-name { display: block; overflow: hidden; width: 58px; color: #647891; font-size: 10px; font-weight: 700; line-height: 1.25; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+.day-save-button { flex: none; min-width: 82px; height: 38px; margin-left: auto; border: 1px solid var(--team-color); border-radius: 8px; background: #fff; color: var(--team-color); font-size: 13px; font-weight: 800; }
+.day-save-button:hover:not(:disabled) { background: var(--team-color); color: #fff; }
+.day-save-button:disabled { border-color: #ced9e7; color: #95a2b4; cursor: default; }
+.day-save-button.saved { border-color: #198754; background: #eef9f2; color: #198754; }
+.number-ball { display: grid; place-items: center; width: 46px; height: 43px; border-radius: 999px; font-size: 16px; font-weight: 800; }
+.number-ball.first { background: var(--team-color); color: #fff; }
+.number-ball.other { border: 1px solid #cbd8e6; background: #fff; color: #22354f; }
+.number-ball.pending { background: #e7ecf3; color: #8290a3; }
+.day-status { display: block; font-size: 11px; }
+.day-status.locked { color: #95611f; }
+.day-status.today { color: #21865d; }
+.day-status.future { color: #7b8ba0; }
+.save-feature-note { margin: 12px 0 0; color: #73869f; font-size: 12px; text-align: right; }
+.message-panel { margin-top: 20px; padding: 40px 25px; border-radius: 12px; background: #f7f9fc; color: #667890; text-align: center; }
+.message-panel.error { color: #a5323a; }
+.message-panel button { margin-left: 12px; padding: 6px 12px; border: 1px solid currentColor; border-radius: 7px; background: #fff; color: inherit; }
+.actions { display: flex; justify-content: center; gap: 12px; margin-top: 18px; }
+.actions button { min-width: 200px; height: 46px; padding: 0 18px; border-radius: 9px; font-size: 14px; font-weight: 800; }
+.primary-button { border: 1px solid var(--team-color); background: var(--team-color); color: #fff; }
+.primary-button:disabled { opacity: .48; cursor: default; }
+.secondary-button { border: 1px solid #b7c4d4; background: #fff; color: #344861; }
+.source-note { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px; margin: 21px 0 0; color: #74859b; font-size: 11px; text-align: center; }
+.source-note a { color: inherit; text-decoration: underline; text-underline-offset: 2px; }
+@media (max-width: 650px) {
+  .hero-inner { padding: 36px 20px 39px; }
+  .page { padding: 18px 13px 35px; }
+  .selection-panel, .results-panel { padding: 20px 17px; }
+  .select-row { grid-template-columns: 1fr; gap: 13px; }
+  .results-top { align-items: flex-start; flex-direction: column; }
+  .day-card { padding: 12px; }
+  .day-main { align-items: flex-start; flex-direction: column; gap: 7px; }
+  .day-date-block { width: auto; }
+  .number-list { gap: 5px; }
+  .number-ball { width: 39px; height: 39px; font-size: 14px; }
+  .day-save-button { align-self: flex-end; }
+  .save-feature-note { text-align: left; }
+  .actions { flex-direction: column; }
+  .actions button { width: 100%; }
+}
