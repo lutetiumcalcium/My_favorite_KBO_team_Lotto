@@ -1,11 +1,11 @@
-"""KBO 명단을 Supabase에 동기화하고 전날 공통 번호를 고정한다."""
+"""KBO 명단을 동기화하고 전날 및 토요일 20시 공통 번호를 고정한다."""
 
 from __future__ import annotations
 
 import json
 import logging
 import os
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 from typing import Any
 
 import requests
@@ -84,8 +84,7 @@ def sync_current_rosters(client: RosterClient) -> None:
         raise RuntimeError("현재 명단 일부 수집 실패: " + "; ".join(failures))
 
 
-def freeze_yesterday(client: RosterClient) -> None:
-    target = kst_today() - timedelta(days=1)
+def freeze_date(client: RosterClient, target: date) -> None:
     if target.weekday() == 0:  # 월요일은 로또 표시 대상에서 제외한다.
         logging.info("%s은 월요일이라 고정 결과를 만들지 않습니다.", target)
         return
@@ -136,14 +135,31 @@ def freeze_yesterday(client: RosterClient) -> None:
     )
     logging.info("%s 고정 결과 후보 %s개 처리", target, len(rows))
     if failures:
-        raise RuntimeError("전날 결과 일부 생성 실패: " + "; ".join(failures))
+        raise RuntimeError(f"{target} 결과 일부 생성 실패: " + "; ".join(failures))
+
+
+def freeze_yesterday(client: RosterClient) -> None:
+    freeze_date(client, kst_today() - timedelta(days=1))
+
+
+def freeze_saturday_at_cutoff(client: RosterClient) -> None:
+    now = datetime.now(KST)
+    if now.weekday() != 5 or now.hour < 20:
+        logging.info("토요일 20시 고정 시각이 아니라 당일 결과 생성을 건너뜁니다.")
+        return
+    freeze_date(client, now.date())
 
 
 def main() -> None:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     failures: list[str] = []
     with RosterClient(timeout=30) as client:
-        for label, task in (("현재 명단", sync_current_rosters), ("전날 결과", freeze_yesterday)):
+        tasks = (
+            ("현재 명단", sync_current_rosters),
+            ("전날 결과", freeze_yesterday),
+            ("토요일 20시 결과", freeze_saturday_at_cutoff),
+        )
+        for label, task in tasks:
             try:
                 task(client)
             except Exception as error:  # 두 작업 중 하나가 실패해도 나머지는 시도한다.

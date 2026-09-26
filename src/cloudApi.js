@@ -5,12 +5,16 @@ const VALID_NUMBERS = [...Array(45).keys()].map((index) => index + 1);
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
 const UNREGISTERED_NAME = '1군 미등록';
 
-function kstToday() {
+function kstNow() {
   const parts = new Intl.DateTimeFormat('en', {
     timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit',
+    hour: '2-digit', hourCycle: 'h23',
   }).formatToParts(new Date());
   const values = Object.fromEntries(parts.map(({ type, value }) => [type, value]));
-  return `${values.year}-${values.month}-${values.day}`;
+  return {
+    date: `${values.year}-${values.month}-${values.day}`,
+    hour: Number(values.hour),
+  };
 }
 
 function parseDate(value) {
@@ -34,13 +38,19 @@ function weekDates(today) {
   return [0, 2, 3, 4, 5, 6].map((offset) => dateString(addDays(sunday, offset)));
 }
 
-function dayPayload(value, today, numbers = null) {
+function saturdayCutoffReached(value, now) {
+  return value === now.date && parseDate(value).getUTCDay() === 6 && now.hour >= 20;
+}
+
+function dayPayload(value, now, numbers = null) {
   const date = parseDate(value);
-  const state = value > today ? 'future' : value < today ? 'locked' : 'today';
+  const saturdayCutoff = saturdayCutoffReached(value, now);
+  const state = value > now.date ? 'future' : value < now.date || saturdayCutoff ? 'locked' : 'today';
   return {
     date: value,
     label: `${String(date.getUTCMonth() + 1).padStart(2, '0')}.${String(date.getUTCDate()).padStart(2, '0')} (${DAY_NAMES[date.getUTCDay()]})`,
     state,
+    saturdayCutoff,
     numbers,
   };
 }
@@ -163,7 +173,8 @@ async function putUserDraw(user, snapshot, team, mode, includePermanent, drawDat
 export async function loadWeek(team, mode, includePermanent) {
   const client = requireSupabase();
   const user = await currentUser();
-  const today = kstToday();
+  const now = kstNow();
+  const today = now.date;
   const dates = weekDates(today);
   const snapshot = await latestSnapshot(team, today);
 
@@ -180,7 +191,7 @@ export async function loadWeek(team, mode, includePermanent) {
 
   const userByDate = new Map(userResult.data.map((row) => [row.draw_date, row.numbers]));
   const dailyByDate = new Map(dailyResult.data.map((row) => [row.draw_date, row.numbers]));
-  if (dates.includes(today) && !userByDate.has(today)) {
+  if (dates.includes(today) && !userByDate.has(today) && !saturdayCutoffReached(today, now)) {
     const numbers = createNumbers(snapshot, team, mode, includePermanent);
     await putUserDraw(user, snapshot, team, mode, includePermanent, today, numbers);
     userByDate.set(today, numbers);
@@ -196,16 +207,20 @@ export async function loadWeek(team, mode, includePermanent) {
     days: dates.map((date) => {
       const storedNumbers = date > today ? null : userByDate.get(date) || dailyByDate.get(date) || null;
       const numbers = addRosterNames(storedNumbers, snapshot, team, includePermanent);
-      return dayPayload(date, today, numbers);
+      return dayPayload(date, now, numbers);
     }),
   };
 }
 
 export async function redrawToday(team, mode, includePermanent) {
+  const now = kstNow();
+  if (saturdayCutoffReached(now.date, now)) {
+    throw new Error('토요일 번호는 한국시간 20시에 고정되어 다시 뽑을 수 없습니다.');
+  }
   const user = await currentUser();
-  const today = kstToday();
+  const today = now.date;
   const snapshot = await latestSnapshot(team, today);
   const numbers = createNumbers(snapshot, team, mode, includePermanent);
   await putUserDraw(user, snapshot, team, mode, includePermanent, today, numbers);
-  return dayPayload(today, today, numbers);
+  return dayPayload(today, now, numbers);
 }

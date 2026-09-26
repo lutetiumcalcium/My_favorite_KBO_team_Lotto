@@ -9,7 +9,7 @@ KBO 10개 팀의 1군·퓨처스 선수 등번호를 이용해 주간 로또 번
 | `src/`, `logos/`, `index.html`, `package*.json`, `vite.config.js` | GitHub Pages에 빌드할 React 화면 | 예 |
 | `kbo_team_colors.json`, `kbo_permanant_numbers.json` | 팀 색상·영구결번 데이터 | 예 |
 | `supabase/schema.sql` | Supabase 테이블·RLS 정책 | 예. 대시보드 SQL Editor에서 실행 |
-| `automation/` | KBO 명단 수집 및 전날 160개 조건 고정 | 예. GitHub Actions가 실행 |
+| `automation/` | KBO 명단 수집 및 전날·토요일 20시 160개 조건 고정 | 예. GitHub Actions가 실행 |
 | `.github/workflows/` | Pages 배포와 3시간 주기 명단 동기화 | 예 |
 | `.env.example` | 로컬 환경 변수 형식 | 예 |
 | `.env.local`, `*.db`, `node_modules/`, `dist/` | 비밀 값·로컬 결과·생성 파일 | 아니오. `.gitignore`에서 제외 |
@@ -39,7 +39,7 @@ GitHub 저장소의 **Settings → Secrets and variables → Actions → New rep
 3. **Actions**에서 `Sync KBO data`를 한 번 수동 실행해 명단을 채웁니다.
 4. `Deploy GitHub Pages` 작업이 끝나면 Pages 주소를 엽니다.
 
-예약 동기화는 한국 시간 기준 매일 00:17부터 3시간마다 실행됩니다. 전날 결과는 `daily_results`의 기존 행을 덮어쓰지 않으므로 고정됩니다. 월요일 결과는 만들지 않습니다.
+예약 동기화는 한국 시간 기준 매일 00:17부터 3시간마다 실행되며, 토요일에는 20:00에도 실행됩니다. 토요일 번호는 20:00부터 다시 뽑을 수 없고 `daily_results`에 160개 조건의 고정 결과를 만듭니다. 기존 행은 덮어쓰지 않으며 월요일 결과는 만들지 않습니다.
 
 ## 로컬 실행
 
@@ -64,6 +64,7 @@ python automation/sync_supabase.py
 
 - 첫 방문 때 Supabase 익명 계정을 만들고 브라우저에 세션을 보관합니다.
 - 오늘 번호와 다시 뽑은 결과는 `user_draws`에 선수 이름까지 저장합니다.
+- 토요일 번호는 한국시간 20:00에 고정되며 이후에는 다시 뽑을 수 없습니다.
 - 브라우저 저장 데이터를 지우거나 다른 기기를 사용하면 기존 익명 계정에 다시 접근할 수 없습니다.
 - IP 주소는 사용자 식별자로 사용하지 않습니다.
 

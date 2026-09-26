@@ -25,7 +25,9 @@ function modeDescription(mode, includePermanent) {
 }
 
 function DayCard({ day }) {
-  const label = day.state === 'future'
+  const label = day.saturdayCutoff
+    ? '토요일 20시 번호 고정'
+    : day.state === 'future'
     ? '예정 · 당일 생성'
     : day.state === 'locked'
       ? '지난 번호 고정'
@@ -73,11 +75,20 @@ export default function App() {
     const scheduleRefresh = () => {
       const now = Date.now();
       const kstOffset = 9 * 60 * 60 * 1000;
-      const nextMidnight = (Math.floor((now + kstOffset) / 86400000) + 1) * 86400000 - kstOffset;
+      const kst = new Date(now + kstOffset);
+      const nextMidnight = Date.UTC(
+        kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate() + 1,
+      ) - kstOffset;
+      let nextRefresh = nextMidnight;
+      if (kst.getUTCDay() === 6 && kst.getUTCHours() < 20) {
+        nextRefresh = Date.UTC(
+          kst.getUTCFullYear(), kst.getUTCMonth(), kst.getUTCDate(), 20,
+        ) - kstOffset;
+      }
       timer = window.setTimeout(() => {
         setRefreshKey((current) => current + 1);
         scheduleRefresh();
-      }, nextMidnight - now + 250);
+      }, nextRefresh - now + 250);
     };
     scheduleRefresh();
     return () => window.clearTimeout(timer);

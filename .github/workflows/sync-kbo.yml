@@ -4,6 +4,8 @@ on:
   schedule:
     # UTC 기준. 한국 시간 00:17, 03:17, 06:17 ...에 실행된다.
     - cron: '17 */3 * * *'
+    # 매주 토요일 한국 시간 20:00에 당일 번호를 고정한다.
+    - cron: '0 11 * * 6'
   workflow_dispatch:
 
 permissions:
@@ -28,4 +30,3 @@ jobs:
         env:
           SUPABASE_URL: https://ziejjlfyrrrmwrxjxzaz.supabase.co
           SUPABASE_SECRET_KEY: ${{ secrets.SUPABASE_SECRET_KEY }}
-

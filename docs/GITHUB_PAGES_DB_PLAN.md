@@ -24,9 +24,9 @@ flowchart LR
 | 화면 배포 | GitHub Pages | Vite로 빌드한 정적 React 파일 제공 |
 | 사용자 구분 | Supabase Auth | 첫 방문 시 익명 로그인으로 고유 사용자 ID 발급; 원하면 나중에 이메일 연결 |
 | 데이터 저장 | Supabase Postgres | 날짜별 KBO 명단, 조건별 고정 번호, 개인별 재추첨 기록 보관 |
-| KBO 명단·자정 결과 생성 | GitHub Actions | 기존 Python 코드를 정기 실행해 팀·날짜별 명단과 전날의 160개 조건 결과를 DB에 기록 |
+| KBO 명단·고정 결과 생성 | GitHub Actions | Python 코드를 정기 실행해 팀·날짜별 명단, 전날 결과와 토요일 20시의 160개 조건 결과를 DB에 기록 |
 
-GitHub Actions의 예약 실행은 지연될 수 있다. 따라서 DB에서 한국 시간 00:00 이후 과거 날짜의 재추첨·수정을 먼저 차단하고, 작업이 실행되면 누락된 결과를 채운다. 화면에는 **마지막 명단 갱신 시각**을 표시하고, 수집 실패 시 기존에 검증된 명단을 유지한다. 수동 재실행도 설정한다. [GitHub Actions 예약 실행 문서](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)
+GitHub Actions의 예약 실행은 지연될 수 있다. 따라서 DB에서 한국 시간 00:00 이후 과거 날짜와 토요일 20:00 이후 당일 결과의 재추첨·수정을 먼저 차단하고, 작업이 실행되면 누락된 결과를 채운다. 화면에는 **마지막 명단 갱신 시각**을 표시하고, 수집 실패 시 기존에 검증된 명단을 유지한다. 수동 재실행도 설정한다. [GitHub Actions 예약 실행 문서](https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows)
 
 ## 3. IP 주소를 사용자 ID로 사용하지 않는 이유
 
@@ -42,7 +42,7 @@ IP 주소는 한 사람에게 고정된 식별자가 아니다. 가정·회사·
 | --- | --- | --- |
 | `roster_snapshots` | KBO 기준 날짜, 팀, 1군 번호 배열, 퓨처스 번호 배열, 수집 시각 | 그날의 추첨 후보를 고정한다. 일반 사용자는 읽기만 가능하다. |
 | `daily_results` | 추첨 날짜, 팀, 1군 선수 수, 영구결번 포함 여부, 번호 6개와 각 번호의 출처·선수명, 명단 기준 날짜 | 모든 사용자에게 공통으로 제공하는 고정 결과. 하루 160개 조건을 채우고 기존 결과는 덮어쓰지 않는다. |
-| `user_draws` | 사용자 ID, 추첨 날짜, 팀, 조건, 번호 6개와 출처·선수명, 수정 시각 | 사용자가 오늘 뽑거나 다시 뽑은 개인 결과. 날짜가 바뀌면 수정할 수 없다. |
+| `user_draws` | 사용자 ID, 추첨 날짜, 팀, 조건, 번호 6개와 출처·선수명, 수정 시각 | 사용자가 오늘 뽑거나 다시 뽑은 개인 결과. 날짜가 바뀌거나 토요일 20시가 지나면 수정할 수 없다. |
 
 번호 출처와 선수 이름을 결과에 함께 저장한다. 그래야 명단이 나중에 바뀌어도 당시 표시한 색·번호·선수명을 그대로 복원할 수 있다. 날짜 계산은 한국 시간(`Asia/Seoul`)으로 통일한다.
 
@@ -50,13 +50,13 @@ IP 주소는 한 사람에게 고정된 식별자가 아니다. 가정·회사·
 
 1. 팀과 조건을 선택하면 개인 결과 `user_draws`를 먼저 확인하고, 없으면 공통 `daily_results`를 보여 준다. 오늘의 두 결과가 모두 없으면 `roster_snapshots`를 이용해 개인 결과를 만든다.
 2. **오늘 다시 뽑기**는 해당 사용자의 오늘 `user_draws`만 갱신한다. 다른 사용자의 번호에는 영향을 주지 않는다.
-3. 한국 시간 00:00부터 전날 번호의 변경을 DB에서 거부한다. 예약 작업은 전날 `daily_results`의 10개 팀 × 8개 모드 × 영구결번 예/아니오 = **160개 조합**을 채우며 기존 결과를 덮어쓰지 않는다. 월요일은 추첨하지 않는다.
+3. 한국 시간 00:00부터 전날 번호의 변경을 거부하고, 토요일은 20:00부터 당일 번호의 변경을 거부한다. 예약 작업은 전날과 토요일 20시 `daily_results`의 10개 팀 × 8개 모드 × 영구결번 예/아니오 = **160개 조합**을 채우며 기존 결과를 덮어쓰지 않는다. 월요일은 추첨하지 않는다.
 
 명단을 수집할 때는 현재 규칙인 1~45번, 0으로 시작하는 번호 제외, 키움 퓨처스 팀명 `고양`, 상무·울산 제외를 유지한다. 수집한 명단의 기준 날짜가 예상 날짜와 다르면 DB에 반영하지 않는다.
 
 ## 5. 접근 권한과 키 관리
 
-- `user_draws`에는 Row Level Security(RLS)를 켠다. 조회·추가·수정은 `user_id = auth.uid()`인 행만 허용하고, 한국 시간의 오늘 날짜에만 변경할 수 있다. 익명 사용자도 인증된 고유 ID로 자신의 행에만 접근한다. [Supabase RLS 문서](https://supabase.com/docs/guides/database/postgres/row-level-security)
+- `user_draws`에는 Row Level Security(RLS)를 켠다. 조회·추가·수정은 `user_id = auth.uid()`인 행만 허용하고, 한국 시간의 오늘 날짜이면서 토요일 20:00 이전에만 변경할 수 있다. 익명 사용자도 인증된 고유 ID로 자신의 행에만 접근한다. [Supabase RLS 문서](https://supabase.com/docs/guides/database/postgres/row-level-security)
 - `roster_snapshots`와 `daily_results`는 공개 읽기를 허용하고, 쓰기는 서버 측 작업에만 허용한다.
 - 공개 서비스에서는 익명 계정의 대량 생성을 막기 위해 CAPTCHA나 요청 제한을 검토하고, 오래 사용하지 않은 익명 계정의 정리 기준을 정한다. [Supabase 익명 로그인 운영 안내](https://supabase.com/docs/guides/auth/auth-anonymous)
 - React에는 Supabase URL과 **publishable key**만 둔다. 높은 권한의 **secret key**는 GitHub Actions Secrets에 보관하며 브라우저 코드나 저장소 파일에 넣지 않는다. [Supabase API 키 문서](https://supabase.com/docs/guides/getting-started/api-keys), [GitHub Actions Secrets 문서](https://docs.github.com/en/actions/how-tos/write-workflows/choose-what-workflows-do/use-secrets)
