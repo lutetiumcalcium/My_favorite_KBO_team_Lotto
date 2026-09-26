@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import teamColors from '../kbo_team_colors.json';
 import { loadWeek, redrawToday } from './cloudApi';
 
@@ -65,9 +65,6 @@ export default function App() {
   const [redrawing, setRedrawing] = useState(false);
   const [error, setError] = useState('');
   const [refreshKey, setRefreshKey] = useState(0);
-  const [modeOpen, setModeOpen] = useState(false);
-  const modeRef = useRef(null);
-  const modeButtonRef = useRef(null);
   const teamColor = team ? teamColors[team] : teamColors.KBO;
   const logoName = team || 'KBO';
 
@@ -85,25 +82,6 @@ export default function App() {
     scheduleRefresh();
     return () => window.clearTimeout(timer);
   }, []);
-
-  useEffect(() => {
-    if (!modeOpen) return undefined;
-    const closeOutside = (event) => {
-      if (!modeRef.current?.contains(event.target)) setModeOpen(false);
-    };
-    const closeEscape = (event) => {
-      if (event.key === 'Escape') {
-        setModeOpen(false);
-        modeButtonRef.current?.focus();
-      }
-    };
-    document.addEventListener('pointerdown', closeOutside);
-    document.addEventListener('keydown', closeEscape);
-    return () => {
-      document.removeEventListener('pointerdown', closeOutside);
-      document.removeEventListener('keydown', closeEscape);
-    };
-  }, [modeOpen]);
 
   useEffect(() => {
     if (!team) {
@@ -178,41 +156,12 @@ export default function App() {
                 {teams.map((name) => <option value={name} key={name}>{name}</option>)}
               </select>
             </label>
-            <div className="select-field mode-field" ref={modeRef}>
-              <span id="mode-label">1군 선수 수</span>
-              <button
-                ref={modeButtonRef}
-                className="mode-button"
-                type="button"
-                aria-labelledby="mode-label"
-                aria-haspopup="listbox"
-                aria-expanded={modeOpen}
-                onClick={() => setModeOpen((open) => !open)}
-              >
-                {modes.find((item) => item.value === mode)?.label}
-                <span aria-hidden="true">⌄</span>
-              </button>
-              {modeOpen && (
-                <div className="mode-menu" role="listbox" aria-labelledby="mode-label">
-                  {modes.map(({ value, label }) => (
-                    <button
-                      className={`mode-option ${mode === value ? 'active' : ''}`}
-                      type="button"
-                      role="option"
-                      aria-selected={mode === value}
-                      key={value}
-                      onClick={() => {
-                        setMode(value);
-                        setModeOpen(false);
-                        modeButtonRef.current?.focus();
-                      }}
-                    >
-                      {label}<span aria-hidden="true">{mode === value ? '✓' : ''}</span>
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
+            <label className="select-field">
+              <span>1군 선수 수</span>
+              <select value={mode} onChange={(event) => setMode(event.target.value)}>
+                {modes.map(({ value, label }) => <option value={value} key={value}>{label}</option>)}
+              </select>
+            </label>
             <div className="select-field permanent-field">
               <span id="permanent-label">영구결번 1군 포함 여부</span>
               <div className="permanent-toggle" role="group" aria-labelledby="permanent-label">
